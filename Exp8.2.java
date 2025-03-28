@@ -1,27 +1,54 @@
-Steps to Create a JDBC-Integrated Servlet for Employee Management
-1. Set Up Database
-Create a MySQL database (EmployeeDB).
-Create an employees table with columns (id, name, department, salary).
-Insert sample employee data.
-
-2. Set Up Your Java Project
-Add MySQL JDBC Driver (via Maven or manually).
-Configure Apache Tomcat in your IDE.
-
-3. Create Database Connection Class
-Write a utility class (DBConnection.java) to establish a connection with the MySQL database.
-
-4. Develop the Servlet (EmployeeServlet.java)
-- Handle GET requests to fetch all employees or search by Employee ID.
-- Use JDBC to query data and display it in HTML format.
-- Implement a search form for filtering employees by ID.
-
-5. Deploy and Run
-Deploy the servlet on Tomcat.
-Access it via http://localhost:8080/YourAppName/EmployeeServlet.
-(The page displays employee records and allows searching by ID.)
-
-Note : Enhancements (Optional)
-Improve UI with CSS & Bootstrap.
-
-
+<!DOCTYPE html> 
+<html> 
+<head> 
+<title>Search Employee</title> 
+</head>  
+<body> 
+<form action="EmployeeServlet" method="post"> 
+Enter Employee ID: <input type="text" name="empId" required> 
+<input type="submit" value="Search"> 
+</form> 
+</body> 
+</html> 
+// EmployeeServlet.java 
+import java.io.IOException; 
+import java.io.PrintWriter; 
+import java.sql.Connection; 
+import java.sql.DriverManager; 
+import java.sql.PreparedStatement; 
+import java.sql.ResultSet; 
+import javax.servlet.ServletException; 
+import javax.servlet.annotation.WebServlet; 
+import javax.servlet.http.HttpServlet; 
+import javax.servlet.http.HttpServletRequest; 
+import javax.servlet.http.HttpServletResponse; 
+@WebServlet("/EmployeeServlet") 
+public class EmployeeServlet extends HttpServlet { 
+protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+throws ServletException, IOException { 
+response.setContentType("text/html"); 
+PrintWriter out = response.getWriter(); 
+String empId = request.getParameter("empId"); 
+try { 
+Class.forName("com.mysql.cj.jdbc.Driver"); 
+Connection con = 
+DriverManager.getConnection("jdbc:mysql://localhost:3306/company", "root", 
+"password"); 
+PreparedStatement ps = con.prepareStatement("SELECT * FROM employees 
+WHERE id = ?"); 
+ps.setInt(1, Integer.parseInt(empId)); 
+ResultSet rs = ps.executeQuery(); 
+if (rs.next()) { 
+out.println("<h2>Employee Details</h2>"); 
+out.println("<p>ID: " + rs.getInt("id") + "</p>"); 
+out.println("<p>Name: " + rs.getString("name") + "</p>"); 
+out.println("<p>Department: " + rs.getString("department") + "</p>"); 
+} else { 
+out.println("<h2>No Employee Found with ID: " + empId + "</h2>"); 
+} 
+con.close(); 
+} catch (Exception e) { 
+out.println("Error: " + e.getMessage()); 
+} 
+} 
+} 
